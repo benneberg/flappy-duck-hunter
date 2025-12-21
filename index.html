@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flappy Duck Hunter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            touch-action: none;
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+```
+    canvas {
+        display: block;
+        touch-action: none;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+    }
+    
+    .brutal-shadow {
+        box-shadow: 8px 8px 0 #000;
+    }
+    
+    .brutal-border {
+        border: 4px solid #000;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .float-anim {
+        animation: float 2s ease-in-out infinite;
+    }
+</style>
+```
+
+</head>
+<body class="bg-white overflow-hidden">
+    <div class="fixed inset-0 flex flex-col items-center justify-center p-4">
+        <!-- Game Canvas Container -->
+        <div class="relative w-full max-w-4xl aspect-video bg-zinc-900 brutal-border brutal-shadow">
+            <canvas id="gameCanvas" class="w-full h-full"></canvas>
+
+```
+        <!-- Crosshair for Phase 2 -->
+        <div id="crosshair" class="hidden absolute pointer-events-none" style="width: 40px; height: 40px; margin-left: -20px; margin-top: -20px;">
+            <div class="absolute inset-0 border-4 border-yellow-400 bg-yellow-400 opacity-30"></div>
+            <div class="absolute top-1/2 left-0 w-full h-1 bg-yellow-400"></div>
+            <div class="absolute left-1/2 top-0 h-full w-1 bg-yellow-400"></div>
+            <div class="absolute inset-2 border-2 border-yellow-400"></div>
+        </div>
+        
+        <!-- UI Overlay - Moved to bottom corners -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 flex justify-between items-end text-white font-black">
+            <div class="text-xl bg-zinc-900 bg-opacity-80 px-4 py-2 brutal-border" style="box-shadow: 4px 4px 0 #000;">
+                SCORE: <span id="score">0</span>
+            </div>
+            <div class="text-sm bg-yellow-400 text-black px-3 py-2 brutal-border" style="box-shadow: 4px 4px 0 #000;">
+                <span id="phase">1 - FLIGHT</span>
+            </div>
+        </div>
+        
+        <!-- Cooldown indicator -->
+        <div id="cooldown" class="hidden absolute top-4 right-4 text-sm bg-yellow-400 text-black px-3 py-2 brutal-border font-black" style="box-shadow: 3px 3px 0 #000;">
+            COOLDOWN: <span id="cooldownTimer">0</span>ms
+        </div>
+        
+        <!-- Start Screen -->
+        <div id="startScreen" class="absolute inset-0 bg-white flex flex-col items-center justify-center p-4">
+            <div class="bg-zinc-900 brutal-border brutal-shadow p-8 max-w-lg w-full">
+                <h1 class="text-5xl md:text-6xl font-black text-white mb-8 text-center" style="text-shadow: 4px 4px 0 #facc15;">FLAPPY DUCK HUNTER</h1>
+                <div class="bg-white brutal-border p-6 mb-8 text-black font-bold text-center space-y-4">
+                    <p class="text-lg">PHASE 1: TAP TO FLY<br><span class="text-sm font-normal">Survive and avoid pipes</span></p>
+                    <div class="h-1 bg-zinc-900 w-20 mx-auto"></div>
+                    <p class="text-lg">PHASE 2: SHOOT THE REPLAY<br><span class="text-sm font-normal">Click to fire (1s cooldown)</span></p>
+                </div>
+                <button id="startBtn" class="w-full px-8 py-4 bg-yellow-400 text-black font-black text-2xl brutal-border float-anim hover:translate-x-1 hover:translate-y-1 transition-transform" style="box-shadow: 6px 6px 0 #000;">
+                    START
+                </button>
+            </div>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="hidden absolute inset-0 bg-white flex flex-col items-center justify-center p-4 overflow-y-auto">
+            <div class="bg-zinc-900 brutal-border brutal-shadow p-8 max-w-lg w-full my-4">
+                <h2 class="text-4xl md:text-5xl font-black text-white mb-6 text-center" style="text-shadow: 4px 4px 0 #facc15;">
+                    MISSION<br><span id="missionStatus">COMPLETE</span>
+                </h2>
+                
+                <!-- New High Score Badge -->
+                <div id="newHighScoreBadge" class="hidden mb-6">
+                    <div class="bg-yellow-400 brutal-border p-4 text-black font-black text-center animate-pulse" style="box-shadow: 4px 4px 0 #000;">
+                        🏆 NEW HIGH SCORE! 🏆
+                    </div>
+                </div>
+                
+                <div class="bg-white brutal-border p-6 mb-6 text-black font-bold space-y-3">
+                    <p class="text-3xl text-center">SCORE: <span id="finalScore" class="text-yellow-400" style="text-shadow: 2px 2px 0 #000;">0</span></p>
+                    <div class="h-1 bg-zinc-900 w-20 mx-auto"></div>
+                    <p class="text-center">Flight: <span id="flightTime">0</span>s</p>
+                    <p class="text-center">Hunt: <span id="huntTime">0</span>s</p>
+                    <div class="h-1 bg-zinc-900 w-20 mx-auto"></div>
+                    <p class="text-center text-sm">HIGH SCORE: <span id="displayHighScore" class="font-black">0</span></p>
+                </div>
+                
+                <!-- Share Button -->
+                <button id="shareBtn" class="hidden w-full px-8 py-3 bg-white text-black font-black text-lg brutal-border hover:translate-x-1 hover:translate-y-1 transition-transform mb-4" style="box-shadow: 6px 6px 0 #000;">
+                    📤 SHARE HIGH SCORE
+                </button>
+                
+                <button id="restartBtn" class="w-full px-8 py-4 bg-yellow-400 text-black font-black text-2xl brutal-border hover:translate-x-1 hover:translate-y-1 transition-transform" style="box-shadow: 6px 6px 0 #000;">
+                    RESTART
+                </button>
+            </div>
+        </div>
+        
+        <!-- Share Badge Modal -->
+        <div id="shareBadgeModal" class="hidden absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
+            <div class="bg-white brutal-border brutal-shadow p-8 max-w-md w-full">
+                <h3 class="text-2xl font-black text-black mb-4 text-center">SHARE YOUR ACHIEVEMENT</h3>
+                
+                <!-- Badge Preview -->
+                <div id="badgePreview" class="bg-zinc-900 brutal-border p-6 mb-6 text-center" style="box-shadow: 4px 4px 0 #000;">
+                    <div class="text-yellow-400 text-6xl mb-2">🏆</div>
+                    <h4 class="text-white font-black text-xl mb-2" style="text-shadow: 2px 2px 0 #facc15;">FLAPPY DUCK HUNTER</h4>
+                    <div class="bg-yellow-400 brutal-border inline-block px-6 py-3 mb-2" style="box-shadow: 3px 3px 0 #000;">
+                        <p class="text-black font-black text-3xl" id="badgeScore">0</p>
+                    </div>
+                    <p class="text-white text-sm font-bold mt-2">HIGH SCORE ACHIEVED</p>
+                </div>
+                
+                <div class="space-y-3">
+                    <button id="downloadBadgeBtn" class="w-full px-6 py-3 bg-yellow-400 text-black font-black brutal-border hover:translate-x-1 hover:translate-y-1 transition-transform" style="box-shadow: 4px 4px 0 #000;">
+                        💾 DOWNLOAD BADGE
+                    </button>
+                    <button id="copyScoreBtn" class="w-full px-6 py-3 bg-white text-black font-black brutal-border hover:translate-x-1 hover:translate-y-1 transition-transform" style="box-shadow: 4px 4px 0 #000;">
+                        📋 COPY TO CLIPBOARD
+                    </button>
+                    <button id="closeModalBtn" class="w-full px-6 py-3 bg-zinc-900 text-white font-black brutal-border hover:translate-x-1 hover:translate-y-1 transition-transform" style="box-shadow: 4px 4px 0 #000;">
+                        CLOSE
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const startScreen = document.getElementById('startScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const scoreDisplay = document.getElementById('score');
+    const phaseDisplay = document.getElementById('phase');
+    const crosshair = document.getElementById('crosshair');
+    const cooldownDisplay = document.getElementById('cooldown');
+    const cooldownTimer = document.getElementById('cooldownTimer');
+    const newHighScoreBadge = document.getElementById('newHighScoreBadge');
+    const displayHighScore = document.getElementById('displayHighScore');
+    const shareBtn = document.getElementById('shareBtn');
+    const shareBadgeModal = document.getElementById('shareBadgeModal');
+    const badgeScore = document.getElementById('badgeScore');
+    const downloadBadgeBtn = document.getElementById('downloadBadgeBtn');
+    const copyScoreBtn = document.getElementById('copyScoreBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
+    // High score management
+    function getHighScore() {
+        const stored = localStorage.getItem('flappyDuckHighScore');
+        return stored ? parseInt(stored) : 0;
+    }
+
+    function setHighScore(score) {
+        localStorage.setItem('flappyDuckHighScore', score.toString());
+    }
+
+    function checkAndUpdateHighScore(score) {
+        const currentHigh = getHighScore();
+        if (score > currentHigh) {
+            setHighScore(score);
+            return true;
+        }
+        return false;
+    }
+
+    // Initialize high score display
+    displayHighScore.textContent = getHighScore();
+
+    // Audio context for sound effects
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Sound effect functions
+    function playFlapSound() {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playHitSound() {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
+        
+        gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.3);
+    }
+
+    function playShootSound() {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+        
+        oscillator.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2000, audioCtx.currentTime);
+        
+        gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function playGameEndSound(win) {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        if (win) {
+            // Victory sound - ascending
+            oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+            oscillator.frequency.setValueAtTime(500, audioCtx.currentTime + 0.1);
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime + 0.2);
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime + 0.3);
+        } else {
+            // Defeat sound - descending
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+        }
+        
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.5);
+    }
+
+    function playStartSound() {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+        oscillator.frequency.setValueAtTime(400, audioCtx.currentTime + 0.1);
+        oscillator.frequency.setValueAtTime(500, audioCtx.currentTime + 0.2);
+        
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.3);
+    }
+
+    let gameState = {
+        phase: 0,
+        score: 0,
+        birdY: 0,
+        birdVelocity: 0,
+        pipes: [],
+        recording: [],
+        replayIndex: 0,
+        lastTime: 0,
+        flightStartTime: 0,
+        flightDuration: 0,
+        huntStartTime: 0,
+        canShoot: true,
+        lastShotTime: 0,
+        birdHit: false
+    };
+
+    const GRAVITY = 0.6;
+    const JUMP_FORCE = -9;
+    const BIRD_SIZE = 20;
+    const PIPE_WIDTH = 60;
+    const PIPE_GAP = 130;
+    const PIPE_SPEED = 2.5;
+    const SHOT_COOLDOWN = 1000;
+
+    function resizeCanvas() {
+        const container = canvas.parentElement;
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function resetGame() {
+        playStartSound();
+        
+        gameState = {
+            phase: 1,
+            score: 0,
+            birdY: canvas.height / 2,
+            birdVelocity: 0,
+            pipes: [],
+            recording: [],
+            replayIndex: 0,
+            lastTime: performance.now(),
+            flightStartTime: performance.now(),
+            flightDuration: 0,
+            huntStartTime: 0,
+            canShoot: true,
+            lastShotTime: 0,
+            birdHit: false
+        };
+        
+        gameState.pipes.push(createPipe());
+        
+        startScreen.classList.add('hidden');
+        gameOverScreen.classList.add('hidden');
+        crosshair.classList.add('hidden');
+        cooldownDisplay.classList.add('hidden');
+        phaseDisplay.textContent = '1 - FLIGHT';
+        
+        gameLoop();
+    }
+
+    function createPipe() {
+        // Much more varied heights - full range of canvas
+        const minGapY = 60;
+        const maxGapY = canvas.height - PIPE_GAP - 60;
+        const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
+        
+        // More dramatic gap size variations
+        const gapVariation = Math.random() * 60 - 30; // -30 to +30
+        const actualGap = PIPE_GAP + gapVariation;
+        
+        return {
+            x: canvas.width,
+            gapY: gapY,
+            gap: Math.max(100, actualGap), // Minimum gap of 100
+            scored: false
+        };
+    }
+
+    function jump() {
+        if (gameState.phase === 1) {
+            gameState.birdVelocity = JUMP_FORCE;
+            playFlapSound();
+        }
+    }
+
+    function shoot(x, y) {
+        if (gameState.phase !== 2 || !gameState.canShoot || gameState.birdHit) return;
+        
+        playShootSound();
+        
+        const birdX = canvas.width / 4;
+        const currentBirdY = gameState.recording[gameState.replayIndex];
+        
+        const dx = x - birdX;
+        const dy = y - currentBirdY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Muzzle flash - brutal style
+        ctx.save();
+        ctx.fillStyle = '#facc15';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 4;
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(x, y, 30 - i * 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
+        ctx.restore();
+        
+        // Draw shot line - thick and brutal
+        ctx.save();
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(birdX, currentBirdY);
+        ctx.stroke();
+        
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(birdX, currentBirdY);
+        ctx.stroke();
+        ctx.restore();
+        
+        if (distance < BIRD_SIZE + 10) {
+            gameState.birdHit = true;
+            endGame(true);
+        }
+        
+        gameState.canShoot = false;
+        gameState.lastShotTime = performance.now();
+        cooldownDisplay.classList.remove('hidden');
+    }
+
+    function updatePhase1(deltaTime) {
+        gameState.birdVelocity += GRAVITY;
+        gameState.birdY += gameState.birdVelocity;
+        
+        gameState.recording.push(gameState.birdY);
+        
+        for (let i = gameState.pipes.length - 1; i >= 0; i--) {
+            const pipe = gameState.pipes[i];
+            pipe.x -= PIPE_SPEED;
+            
+            const birdX = canvas.width / 4;
+            if (!pipe.scored && pipe.x + PIPE_WIDTH < birdX) {
+                pipe.scored = true;
+            }
+            
+            if (pipe.x + PIPE_WIDTH < 0) {
+                gameState.pipes.splice(i, 1);
+            }
+            
+            if (birdX + BIRD_SIZE > pipe.x && birdX < pipe.x + PIPE_WIDTH) {
+                if (gameState.birdY < pipe.gapY || gameState.birdY + BIRD_SIZE > pipe.gapY + pipe.gap) {
+                    playHitSound();
+                    startPhase2();
+                    return;
+                }
+            }
+        }
+        
+        if (gameState.birdY < 0 || gameState.birdY + BIRD_SIZE > canvas.height) {
+            playHitSound();
+            startPhase2();
+            return;
+        }
+        
+        // Much more frequent pipe spawning for higher difficulty
+        if (gameState.pipes.length === 0 || gameState.pipes[gameState.pipes.length - 1].x < canvas.width - 180) {
+            gameState.pipes.push(createPipe());
+        }
+        
+        const elapsedSeconds = (performance.now() - gameState.flightStartTime) / 1000;
+        gameState.score = Math.floor(elapsedSeconds);
+    }
+
+    function startPhase2() {
+        gameState.phase = 2;
+        gameState.flightDuration = (performance.now() - gameState.flightStartTime) / 1000;
+        gameState.huntStartTime = performance.now();
+        gameState.replayIndex = 0;
+        gameState.pipes = [];
+        
+        phaseDisplay.textContent = '2 - HUNT';
+        crosshair.classList.remove('hidden');
+    }
+
+    function updatePhase2(deltaTime) {
+        if (gameState.replayIndex < gameState.recording.length) {
+            gameState.birdY = gameState.recording[gameState.replayIndex];
+            gameState.replayIndex++;
+        } else if (!gameState.birdHit) {
+            endGame(false);
+            return;
+        }
+        
+        if (!gameState.canShoot) {
+            const elapsed = performance.now() - gameState.lastShotTime;
+            if (elapsed >= SHOT_COOLDOWN) {
+                gameState.canShoot = true;
+                cooldownDisplay.classList.add('hidden');
+            } else {
+                cooldownTimer.textContent = Math.ceil(SHOT_COOLDOWN - elapsed);
+            }
+        }
+        
+        const huntTime = (performance.now() - gameState.huntStartTime) / 1000;
+        gameState.score = Math.max(0, Math.floor(gameState.flightDuration - huntTime));
+    }
+
+    function endGame(success) {
+        playGameEndSound(success);
+        
+        gameState.phase = 0;
+        crosshair.classList.add('hidden');
+        cooldownDisplay.classList.add('hidden');
+        
+        const huntTime = ((performance.now() - gameState.huntStartTime) / 1000).toFixed(2);
+        const finalScore = gameState.score;
+        
+        // Check for new high score
+        const isNewHighScore = checkAndUpdateHighScore(finalScore);
+        
+        document.getElementById('missionStatus').textContent = success ? 'COMPLETE' : 'FAILED';
+        document.getElementById('finalScore').textContent = finalScore;
+        document.getElementById('flightTime').textContent = gameState.flightDuration.toFixed(2);
+        document.getElementById('huntTime').textContent = huntTime;
+        displayHighScore.textContent = getHighScore();
+        
+        // Show new high score badge and share button
+        if (isNewHighScore && finalScore > 0) {
+            newHighScoreBadge.classList.remove('hidden');
+            shareBtn.classList.remove('hidden');
+        } else {
+            newHighScoreBadge.classList.add('hidden');
+            shareBtn.classList.add('hidden');
+        }
+        
+        gameOverScreen.classList.remove('hidden');
+    }
+
+    function draw() {
+        // Clear with dark background
+        ctx.fillStyle = '#18181b';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw pipes - brutal style with thick borders
+        for (const pipe of gameState.pipes) {
+            // Top pipe - white with black border
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
+            
+            // Bottom pipe
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(pipe.x, pipe.gapY + pipe.gap, PIPE_WIDTH, canvas.height - pipe.gapY - pipe.gap);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(pipe.x, pipe.gapY + pipe.gap, PIPE_WIDTH, canvas.height - pipe.gapY - pipe.gap);
+        }
+        
+        // Draw bird - brutal square style
+        const birdX = canvas.width / 4;
+        
+        // Shadow
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(birdX + 6, gameState.birdY + 6, BIRD_SIZE, BIRD_SIZE);
+        
+        // Main body
+        ctx.fillStyle = gameState.birdHit ? '#facc15' : '#ffffff';
+        ctx.fillRect(birdX, gameState.birdY, BIRD_SIZE, BIRD_SIZE);
+        
+        // Border
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(birdX, gameState.birdY, BIRD_SIZE, BIRD_SIZE);
+        
+        // Simple beak - triangle
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.moveTo(birdX + BIRD_SIZE, gameState.birdY + BIRD_SIZE/2 - 4);
+        ctx.lineTo(birdX + BIRD_SIZE + 8, gameState.birdY + BIRD_SIZE/2);
+        ctx.lineTo(birdX + BIRD_SIZE, gameState.birdY + BIRD_SIZE/2 + 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Eye
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(birdX + BIRD_SIZE - 8, gameState.birdY + 6, 4, 4);
+        
+        scoreDisplay.textContent = gameState.score;
+    }
+
+    function gameLoop() {
+        if (gameState.phase === 0) return;
+        
+        const currentTime = performance.now();
+        const deltaTime = (currentTime - gameState.lastTime) / 1000;
+        gameState.lastTime = currentTime;
+        
+        if (gameState.phase === 1) {
+            updatePhase1(deltaTime);
+        } else if (gameState.phase === 2) {
+            updatePhase2(deltaTime);
+        }
+        
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    startBtn.addEventListener('click', resetGame);
+    restartBtn.addEventListener('click', resetGame);
+
+    // Share functionality
+    shareBtn.addEventListener('click', () => {
+        badgeScore.textContent = getHighScore();
+        shareBadgeModal.classList.remove('hidden');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+        shareBadgeModal.classList.add('hidden');
+    });
+
+    downloadBadgeBtn.addEventListener('click', () => {
+        const badge = document.getElementById('badgePreview');
+        
+        // Create a temporary canvas for the badge
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = 600;
+        tempCanvas.height = 600;
+        
+        // Draw badge background
+        tempCtx.fillStyle = '#18181b';
+        tempCtx.fillRect(0, 0, 600, 600);
+        
+        // Draw border
+        tempCtx.strokeStyle = '#000';
+        tempCtx.lineWidth = 8;
+        tempCtx.strokeRect(20, 20, 560, 560);
+        
+        // Draw trophy emoji (simplified)
+        tempCtx.font = 'bold 120px Arial';
+        tempCtx.textAlign = 'center';
+        tempCtx.fillText('🏆', 300, 180);
+        
+        // Draw title
+        tempCtx.fillStyle = '#fff';
+        tempCtx.font = 'bold 40px Arial';
+        tempCtx.fillText('FLAPPY DUCK HUNTER', 300, 250);
+        
+        // Draw score box
+        tempCtx.fillStyle = '#facc15';
+        tempCtx.fillRect(180, 280, 240, 100);
+        tempCtx.strokeStyle = '#000';
+        tempCtx.lineWidth = 6;
+        tempCtx.strokeRect(180, 280, 240, 100);
+        
+        // Draw score
+        tempCtx.fillStyle = '#000';
+        tempCtx.font = 'bold 60px Arial';
+        tempCtx.fillText(getHighScore().toString(), 300, 350);
+        
+        // Draw subtitle
+        tempCtx.fillStyle = '#fff';
+        tempCtx.font = 'bold 24px Arial';
+        tempCtx.fillText('HIGH SCORE ACHIEVED', 300, 440);
+        
+        // Download
+        tempCanvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `flappy-duck-highscore-${getHighScore()}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    });
+
+    copyScoreBtn.addEventListener('click', async () => {
+        const score = getHighScore();
+        const text = `🏆 I scored ${score} in Flappy Duck Hunter! 🦆\n\nCan you beat my high score?`;
+        
+        try {
+            await navigator.clipboard.writeText(text);
+            copyScoreBtn.textContent = '✅ COPIED!';
+            setTimeout(() => {
+                copyScoreBtn.textContent = '📋 COPY TO CLIPBOARD';
+            }, 2000);
+        } catch (err) {
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            copyScoreBtn.textContent = '✅ COPIED!';
+            setTimeout(() => {
+                copyScoreBtn.textContent = '📋 COPY TO CLIPBOARD';
+            }, 2000);
+        }
+    });
+
+    canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+        
+        if (gameState.phase === 1) {
+            jump();
+        } else if (gameState.phase === 2) {
+            shoot(x, y);
+        }
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        
+        if (gameState.phase === 1) {
+            jump();
+        } else if (gameState.phase === 2) {
+            shoot(x, y);
+        }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (gameState.phase === 2) {
+            const rect = canvas.getBoundingClientRect();
+            crosshair.style.left = (e.clientX - rect.left) + 'px';
+            crosshair.style.top = (e.clientY - rect.top) + 'px';
+        }
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (gameState.phase === 2) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            crosshair.style.left = (touch.clientX - rect.left) + 'px';
+            crosshair.style.top = (touch.clientY - rect.top) + 'px';
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && gameState.phase === 1) {
+            e.preventDefault();
+            jump();
+        }
+    });
+</script>
+```
+
+</body>
+</html>
