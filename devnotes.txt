@@ -1,17 +1,147 @@
 ideas
 
-  new unlockable modes:
-chicken mode:
-bird randomly goes chicken and gameplay is reversed.
+Below is a clean, summarized design prompt that consolidates your new ideas into well-scoped, implementable features, aligned with your current mechanics and technical structure. This is written so you can directly reuse it as a future update roadmap, internal design doc, or AI prompt.
 
-  greedy bird mode:
-get more score by eat as much pellets you want, but bird gets fatter and larger which makes the play harder.
+⸻
 
-  new hatchable eggs hatches to new birds, just design.
+Flappy Duck Hunter – Future Update Concepts (Modes, Progression, Customization)
 
-    unlock designs.
+1. Unlockable Game Modes
 
-    custom bird editor. make your own bird and share it.
+Chicken Mode (Chaos Modifier)
+	•	Core Twist
+	•	At random intervals, the bird “goes chicken.”
+	•	Controls, gravity, or screen orientation temporarily reverse.
+	•	Design Options
+	•	Inverted gravity.
+	•	Left–right flip.
+	•	Delayed input response (short panic window).
+	•	Telegraphing
+	•	Visual cue (feather puff / color flash).
+	•	Audio cue (chicken cluck).
+	•	Scoring
+	•	Active chicken time applies a score multiplier.
+	•	Purpose
+	•	High chaos, short bursts.
+	•	Excellent streamer / replay value.
+
+⸻
+
+Greedy Bird Mode (Risk–Reward Growth)
+	•	Core Loop
+	•	Collect pellets instead of avoiding them.
+	•	Each pellet:
+	•	Increases score.
+	•	Increases bird size and weight.
+	•	Mechanical Impact
+	•	Larger hitbox.
+	•	Increased gravity.
+	•	Reduced jump force.
+	•	Balancing
+	•	Optional “digest” zones to shrink bird.
+	•	Size caps with escalating penalties.
+	•	Scoring
+	•	Combo-based pellet chains.
+	•	Bonus for surviving at maximum size.
+	•	Purpose
+	•	Strategic greed vs. survival tension.
+
+⸻
+
+2. Eggs & Hatch System (Meta Progression)
+
+Hatchable Eggs
+	•	Egg Types
+	•	Common, Rare, Epic, Legendary.
+	•	Hatching Conditions
+	•	Coins collected.
+	•	Mode-specific achievements.
+	•	Perfect recall / precision hunts.
+	•	Outcome
+	•	Unlock new birds (visual-only at first).
+	•	Rare birds may have cosmetic-only animations.
+
+⸻
+
+Bird Designs (No Pay-to-Win)
+	•	Visual Differentiation
+	•	Shape variations.
+	•	Feathers, eyes, beaks.
+	•	Idle and hit animations.
+	•	Future-Proofing
+	•	Reserve hooks for light modifiers (cosmetic trails, sounds).
+
+⸻
+
+3. Custom Bird Editor (High Engagement Feature)
+
+Editor Features
+	•	Modular Parts
+	•	Body shape.
+	•	Eye type.
+	•	Beak style.
+	•	Color palette.
+	•	Constraints
+	•	Fixed hitbox size.
+	•	No gameplay advantage.
+	•	UX
+	•	Sliders + preset templates.
+	•	Live canvas preview.
+
+⸻
+
+Sharing System
+	•	Export Format
+	•	JSON-based bird definition.
+	•	Sharing Methods
+	•	Copy to clipboard.
+	•	QR code.
+	•	Downloadable .duck file.
+	•	Import
+	•	Paste or scan to load custom bird.
+	•	Safety
+	•	Validation layer to prevent invalid assets.
+
+⸻
+
+4. Unlock & Progression Economy
+	•	Currencies
+	•	Coins → eggs, cosmetics.
+	•	Skill unlocks → modes.
+	•	Unlock Paths
+	•	Performance-based (skill).
+	•	Exploration-based (variety).
+	•	No Forced Monetization
+	•	Keeps game arcade-pure and replay-focused.
+
+⸻
+
+5. Mode Synergy & Replay Value
+	•	Modes can stack:
+	•	Greedy Bird + Chicken Mode.
+	•	Recall Phase added to any mode.
+	•	Daily/Weekly rotation:
+	•	“Greedy Chicken Recall Challenge.”
+	•	Encourages mastery across systems, not grinding.
+
+⸻
+
+6. Technical Notes (Forward Compatibility)
+	•	Use mode modifiers instead of branching logic.
+	•	Bird size, gravity, controls become parameters.
+	•	Editor assets map directly to draw functions.
+	•	Egg hatching driven by seedable RNG for fairness.
+
+⸻
+
+Strategic Outcome
+
+These additions evolve the game into:
+
+a modular arcade system where chaos, strategy, memory, and creativity coexist.
+
+
+⸻
 
 
 Below is a concise, well-structured improvement and optimization prompt tailored to your existing design, mechanics, and codebase. It is written so you can reuse it directly as a design brief, roadmap, or AI prompt for further iteration.
