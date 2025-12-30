@@ -1,4 +1,68 @@
-ideas
+visual design
+Below is a short, high-signal game description prompt designed specifically for LLM-driven design exploration and image generation. It is intentionally compact, unambiguous, and visually descriptive, while preserving your game’s unique mechanics and tone.
+
+You can paste this as-is into another LLM or image model.
+
+⸻
+
+Game Description Prompt
+
+Flappy Duck Hunter is a fast-paced, stylized arcade game that blends classic Flappy Bird–style flight with unexpected multi-phase gameplay.
+
+The game features a bold, high-contrast brutalist / neo-arcade visual style: thick black outlines, flat colors, minimal shading, and exaggerated UI elements. The main character is a simple, geometric bird (duck-like), drawn as a chunky square with expressive eyes and a bright beak.
+
+Core Gameplay
+	1.	Phase 1 – Flight
+	•	Tap-to-fly vertical obstacle course.
+	•	The bird navigates through pipes while gravity pulls it down.
+	•	Gameplay is precise, fast, and unforgiving.
+	•	Player actions are recorded.
+	2.	Phase 2 – Hunt
+	•	The recorded flight is replayed automatically.
+	•	The player now aims and shoots at the replayed bird with a crosshair.
+	•	Limited fire rate and strict timing.
+	•	Hitting the bird ends the run successfully; missing until replay ends fails the run.
+	3.	Optional Phase – Recall / Puzzle
+	•	During flight, colored elements appear in a sequence.
+	•	After action phases, the player must recall and reorder the sequence.
+	•	Accuracy affects the final score.
+
+Game Modes (Examples)
+	•	Chicken Mode: controls or gravity randomly reverse for short bursts.
+	•	Greedy Bird Mode: collect pellets to score, but the bird grows larger and heavier, increasing difficulty.
+	•	Modes can stack for chaotic, high-skill runs.
+
+Visual Themes
+	•	Randomized parallax backgrounds per run:
+	•	Dystopian futuristic wasteland
+	•	Neon city skyline
+	•	Techno festival / rave grid
+	•	Retro arcade sunset
+	•	Subtle animation, strong silhouettes, pixel-perfect or vector-clean look.
+
+Progression & Customization
+	•	Hatchable eggs unlock new bird designs.
+	•	Cosmetic-only birds and effects.
+	•	Custom bird editor allowing players to design and share birds.
+	•	No realism; exaggerated, playful, arcade-first design.
+
+Tone
+	•	Energetic, slightly absurd, skill-focused.
+	•	Feels like a modern arcade cabinet translated to mobile and web.
+	•	Designed for replayability, mastery, and visual impact.
+
+⸻
+
+If you want, I can also provide:
+	•	A one-paragraph ultra-minimal prompt (for image generators)
+	•	A style-only visual prompt
+	•	Or separate prompts for UI, characters, backgrounds, and VFX
+
+Just tell me how you plan to use it next.
+
+
+
+future ideas
 
 Below is a clean, summarized design prompt that consolidates your new ideas into well-scoped, implementable features, aligned with your current mechanics and technical structure. This is written so you can directly reuse it as a future update roadmap, internal design doc, or AI prompt.
 
